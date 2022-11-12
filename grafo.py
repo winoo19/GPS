@@ -11,8 +11,8 @@ class Grafo:
     # Diseñar y construirl a clase grafo
 
     def __init__(self, dirigido=False):
-        """Crea un grafo dirigido o no dirigido.
-
+        """ Crea un grafo dirigido o no dirigido.
+        
         Args:
             dirigido: Flag que indica si el grafo es dirigido o no.
         Returns: Grafo o grafo dirigido (según lo indicado por el flag)
@@ -28,19 +28,17 @@ class Grafo:
         Returns: True si el grafo es dirigido, False si no.
         """
         pass
-
-    def agregar_vertice(self, v: object) -> None:
-        """Agrega el vértice v al grafo.
-
+    
+    def agregar_vertice(self,v:object) -> None:
+        """ Agrega el vértice v al grafo.
+        
         Args: v vértice que se quiere agregar
         Returns: None
         """
         pass
 
-    def agregar_arista(
-        self, s: object, t: object, data: object, weight: float = 1
-    ) -> None:
-        """Si los objetos s y t son vértices del grafo, agrega
+    def agregar_arista(self,s:object,t:object,data:object,weight:float=1) -> None:
+        """ Si los objetos s y t son vértices del grafo, agrega
         una orista al grafo que va desde el vértice s hasta el vértice t
         y le asocia los datos "data" y el peso weight.
         En caso contrario, no hace nada.
@@ -53,9 +51,9 @@ class Grafo:
         Returns: None
         """
         pass
-
-    def eliminar_vertice(self, v: object) -> None:
-        """Si el objeto v es un vértice del grafo lo elimiina.
+    
+    def eliminar_vertice(self,v:object) -> None:
+        """ Si el objeto v es un vértice del grafo lo elimiina.
         Si no, no hace nada.
 
         Args: v vértice que se quiere eliminar
@@ -63,8 +61,8 @@ class Grafo:
         """
         pass
 
-    def eliminar_arista(self, s: object, t: object) -> None:
-        """Si los objetos s y t son vértices del grafo y existe
+    def eliminar_arista(self,s:object,t:object) -> None:
+        """ Si los objetos s y t son vértices del grafo y existe
         una arista de u a v la elimina.
         Si no, no hace nada.
 
@@ -74,9 +72,9 @@ class Grafo:
         Returns: None
         """
         pass
-
-    def obtener_arista(self, s: object, t: object) -> Tuple[object, float] or None:
-        """Si los objetos s y t son vértices del grafo y existe
+    
+    def obtener_arista(self,s:object,t:object) -> Tuple[object,float] or None:
+        """ Si los objetos s y t son vértices del grafo y existe
         una arista de u a v, devuelve sus datos y su peso en una tupla.
         Si no, devuelve None
 
@@ -88,8 +86,8 @@ class Grafo:
         """
         pass
 
-    def lista_adyacencia(self, u: object) -> List[object] or None:
-        """Si el objeto u es un vértice del grafo, devuelve
+    def lista_adyacencia(self,u:object) -> List[object] or None:
+        """ Si el objeto u es un vértice del grafo, devuelve
         su lista de adyacencia.
         Si no, devuelve None.
 
@@ -101,8 +99,8 @@ class Grafo:
         pass
 
     #### Grados de vértices ####
-    def grado_saliente(self, v: object) -> int or None:
-        """Si el objeto u es un vértice del grafo, devuelve
+    def grado_saliente(self,v:object) -> int or None:
+        """ Si el objeto u es un vértice del grafo, devuelve
         su grado saliente.
         Si no, devuelve None.
 
@@ -112,8 +110,8 @@ class Grafo:
         """
         pass
 
-    def grado_entrante(self, v: object) -> int or None:
-        """Si el objeto u es un vértice del grafo, devuelve
+    def grado_entrante(self,v:object) -> int or None:
+        """ Si el objeto u es un vértice del grafo, devuelve
         su grado entrante.
         Si no, devuelve None.
 
@@ -123,8 +121,8 @@ class Grafo:
         """
         pass
 
-    def grado(self, v: object) -> int or None:
-        """Si el objeto u es un vértice del grafo, devuelve
+    def grado(self,v:object) -> int or None:
+        """ Si el objeto u es un vértice del grafo, devuelve
         su grado si el grafo no es dirigido y su grado saliente si
         es dirigido.
         Si no pertenece al grafo, devuelve None.
@@ -136,8 +134,8 @@ class Grafo:
         pass
 
     #### Algoritmos ####
-    def dijkstra(self, origen: object) -> Dict[object, object]:
-        """Calcula un Árbol Abarcador Mínimo para el grafo partiendo
+    def dijkstra(self,origen:object) -> Dict[object,object]:
+        """ Calcula un Árbol Abarcador Mínimo para el grafo partiendo
         del vértice "origen" usando el algoritmo de Dijkstra. Calcula únicamente
         el árbol de la componente conexa que contiene a "origen".
 
@@ -147,11 +145,12 @@ class Grafo:
         """
         pass
 
-    def camino_minimo(self, origen: object, destino: object) -> List[object]:
+    def camino_minimo(self,origen:object,destino:object) -> List[object]:
         pass
 
-    def prim(self) -> Dict[object, object]:
-        """Calcula un Árbol Abarcador Mínimo para el grafo
+
+    def prim(self) -> Dict[object,object]:
+        """ Calcula un Árbol Abarcador Mínimo para el grafo
         usando el algoritmo de Prim.
 
         Args: None
@@ -159,9 +158,10 @@ class Grafo:
         grafo, qué vértice es su padre en el árbol abarcador mínimo.
         """
         pass
+                    
 
-    def kruskal(self) -> List[Tuple[object, object]]:
-        """Calcula un Árbol Abarcador Mínimo para el grafo
+    def kruskal(self) -> List[Tuple[object,object]]:
+        """ Calcula un Árbol Abarcador Mínimo para el grafo
         usando el algoritmo de Prim.
 
         Args: None
