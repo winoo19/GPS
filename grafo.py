@@ -18,7 +18,8 @@ class Grafo:
         Returns: Grafo o grafo dirigido (según lo indicado por el flag)
         inicializado sin vértices ni aristas.
         """
-        pass
+        self._dirigido = dirigido
+        self.adj: dict[object, dict[object, dict]] = {}
 
     #### Operaciones básicas del TAD ####
     def es_dirigido(self) -> bool:
@@ -27,7 +28,7 @@ class Grafo:
         Args: None
         Returns: True si el grafo es dirigido, False si no.
         """
-        pass
+        return self._dirigido
 
     def agregar_vertice(self, v: object) -> None:
         """Agrega el vértice v al grafo.
@@ -35,11 +36,9 @@ class Grafo:
         Args: v vértice que se quiere agregar
         Returns: None
         """
-        pass
+        self.adj[v] = {}
 
-    def agregar_arista(
-        self, s: object, t: object, data: object, weight: float = 1
-    ) -> None:
+    def agregar_arista(self, s: object, t: object, data: object, weight: float = 1) -> None:
         """Si los objetos s y t son vértices del grafo, agrega
         una arista al grafo que va desde el vértice s hasta el vértice t
         y le asocia los datos "data" y el peso weight.
@@ -52,7 +51,17 @@ class Grafo:
             weight: peso de la arista
         Returns: None
         """
-        pass
+        if s in self.adj and t in self.adj:
+            self.adj[s][t] = {
+                "data": data,
+                "weight": weight
+            }
+            if not self.es_dirigido():
+                self.adj[t][s] = {
+                "data": data,
+                "weight": weight
+                }
+
 
     def eliminar_vertice(self, v: object) -> None:
         """Si el objeto v es un vértice del grafo lo elimiina.
@@ -61,7 +70,9 @@ class Grafo:
         Args: v vértice que se quiere eliminar
         Returns: None
         """
-        pass
+        self.adj.pop(v, -1)
+        for _, value in self.adj.items():
+            value.pop(v, -1)
 
     def eliminar_arista(self, s: object, t: object) -> None:
         """Si los objetos s y t son vértices del grafo y existe
@@ -73,7 +84,9 @@ class Grafo:
             t: vértice de destino de la arista
         Returns: None
         """
-        pass
+        self.adj[s].pop(t, -1)
+        if self.es_dirigido():
+            self.adj[t].pop(s, -1)
 
     def obtener_arista(self, s: object, t: object) -> Tuple[object, float] or None:
         """Si los objetos s y t son vértices del grafo y existe
@@ -86,11 +99,11 @@ class Grafo:
         Returns: Una tupla (a,w) con los datos de la arista "a" y su peso
         "w" si la arista existe. None en caso contrario.
         """
-        pass
+        arista = self.adj[s][t]
+        return arista["data"], arista["weight"]
 
     def lista_adyacencia(self, u: object) -> List[object] or None:
-        """Si el objeto u es un vértice del grafo, devuelve
-        su lista de adyacencia.
+        """Si el objeto u es un vértice del grafo, devuelve su lista de adyacencia.
         Si no, devuelve None.
 
         Args: u vértice del grafo
@@ -98,7 +111,7 @@ class Grafo:
         adyacentes a u si u es un vértice del grafo y None en caso
         contrario
         """
-        pass
+        return list(self.adj[u].keys()) if u in self.adj else None
 
     #### Grados de vértices ####
     def grado_saliente(self, v: object) -> int or None:
@@ -110,7 +123,7 @@ class Grafo:
         Returns: El grado saliente (int) si el vértice existe y
         None en caso contrario.
         """
-        pass
+        return len(self.adj[v].keys()) if v in self.adj else None
 
     def grado_entrante(self, v: object) -> int or None:
         """Si el objeto u es un vértice del grafo, devuelve
@@ -121,7 +134,7 @@ class Grafo:
         Returns: El grado entrante (int) si el vértice existe y
         None en caso contrario.
         """
-        pass
+        return sum(1 for _, a in self.adj if v in a) if v in self.adj else None
 
     def grado(self, v: object) -> int or None:
         """Si el objeto u es un vértice del grafo, devuelve
@@ -133,7 +146,8 @@ class Grafo:
         Returns: El grado (int) o grado saliente (int) según corresponda
         si el vértice existe y None en caso contrario.
         """
-        pass
+        grado = self.grado_saliente(v)+self.grado_entrante(v)
+        return grado//(2 if not self.es_dirigido() else 1) if v in self.adj else None
 
     #### Algoritmos ####
     def dijkstra(self, origen: object) -> Dict[object, object]:
@@ -162,7 +176,7 @@ class Grafo:
 
     def kruskal(self) -> List[Tuple[object, object]]:
         """Calcula un Árbol Abarcador Mínimo para el grafo
-        usando el algoritmo de Prim.
+        usando el algoritmo de Kruskal.
 
         Args: None
         Returns: Devuelve una lista [(s1,t1),(s2,t2),...,(sn,tn)]
