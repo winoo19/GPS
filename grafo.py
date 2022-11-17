@@ -19,6 +19,7 @@ class Grafo:
         inicializado sin vértices ni aristas.
         """
         self._dirigido = dirigido
+        self.aristas: dict[tuple, dict] = {}
         self.adj: dict[object, dict[object, dict]] = {}
         self.aristas: dict[object, dict[object, dict]] = {}
 
@@ -89,9 +90,11 @@ class Grafo:
         Returns: None
         """
         if s in self.adj and t in self.adj:
+            self.aristas[(s, t)] = {"data": data, "weight": weight}
             self.adj[s][t] = {"data": data, "weight": weight}
             if not self.es_dirigido():
                 self.adj[t][s] = {"data": data, "weight": weight}
+                self.aristas[(t, s)] = {"data": data, "weight": weight}
 
     def eliminar_vertice(self, v: object) -> None:
         """Si el objeto v es un vértice del grafo lo elimiina.
@@ -101,6 +104,9 @@ class Grafo:
         Returns: None
         """
         self.adj.pop(v, -1)
+        for k, _ in self.aristas.items():
+            if v in k:
+                self.aristas.pop(k)
         for _, value in self.adj.items():
             value.pop(v, -1)
 
@@ -115,8 +121,10 @@ class Grafo:
         Returns: None
         """
         self.adj[s].pop(t, -1)
+        self.aristas.pop((s, t), -1)
         if self.es_dirigido():
             self.adj[t].pop(s, -1)
+            self.aristas.pop((t, s), -1)
 
     def obtener_arista(self, s: object, t: object) -> Tuple[object, float] or None:
         """Si los objetos s y t son vértices del grafo y existe
@@ -213,7 +221,11 @@ class Grafo:
         de los pares de vértices del grafo
         que forman las aristas del arbol abarcador mínimo.
         """
-        pass
+        n_vertices = len(self.adj)
+        tree = []
+        aristas = sorted(self.aristas, key=lambda x: self.aristas[x]["weight"])
+        while len(tree) == n_vertices:
+            pass
 
     #### NetworkX ####
     def convertir_a_NetworkX(self) -> nx.Graph or nx.DiGraph:
