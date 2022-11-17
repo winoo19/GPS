@@ -1,7 +1,7 @@
 from typing import List, Tuple, Dict
 import networkx as nx
 import sys
-
+import matplotlib.pyplot as plt
 import heapq
 
 INFTY = sys.float_info.max
@@ -20,6 +20,41 @@ class Grafo:
         """
         self._dirigido = dirigido
         self.adj: dict[object, dict[object, dict]] = {}
+        self.aristas: dict[object, dict[object, dict]] = {}
+
+    def __str__(self):
+        """Representación en string del grafo.
+
+        Args: None
+        Returns: Una representación en string del grafo.
+        """
+        return str(self.adj)
+
+    def draw(self):
+        """Dibuja el grafo usando networkx.
+
+        Args: None
+        Returns: None
+        """
+        G = self.convertir_a_NetworkX()
+        nx.draw(G, with_labels=True)
+        plt.show()
+
+    def __getitem__(self, v: object) -> List[object]:
+        """Devuelve la lista de adyacencia del vértice v.
+
+        Args: v vértice del grafo
+        Returns: La lista de adyacencia del vértice v.
+        """
+        return self.lista_adyacencia(v)
+
+    def __iter__(self):
+        """Iterador del grafo.
+
+        Args: None
+        Returns: Un iterador sobre los vértices del grafo.
+        """
+        return iter(self.adj)
 
     #### Operaciones básicas del TAD ####
     def es_dirigido(self) -> bool:
@@ -38,7 +73,9 @@ class Grafo:
         """
         self.adj[v] = {}
 
-    def agregar_arista(self, s: object, t: object, data: object, weight: float = 1) -> None:
+    def agregar_arista(
+        self, s: object, t: object, data: object, weight: float = 1
+    ) -> None:
         """Si los objetos s y t son vértices del grafo, agrega
         una arista al grafo que va desde el vértice s hasta el vértice t
         y le asocia los datos "data" y el peso weight.
@@ -52,16 +89,9 @@ class Grafo:
         Returns: None
         """
         if s in self.adj and t in self.adj:
-            self.adj[s][t] = {
-                "data": data,
-                "weight": weight
-            }
+            self.adj[s][t] = {"data": data, "weight": weight}
             if not self.es_dirigido():
-                self.adj[t][s] = {
-                "data": data,
-                "weight": weight
-                }
-
+                self.adj[t][s] = {"data": data, "weight": weight}
 
     def eliminar_vertice(self, v: object) -> None:
         """Si el objeto v es un vértice del grafo lo elimiina.
@@ -146,8 +176,8 @@ class Grafo:
         Returns: El grado (int) o grado saliente (int) según corresponda
         si el vértice existe y None en caso contrario.
         """
-        grado = self.grado_saliente(v)+self.grado_entrante(v)
-        return grado//(2 if not self.es_dirigido() else 1) if v in self.adj else None
+        grado = self.grado_saliente(v) + self.grado_entrante(v)
+        return grado // (2 if not self.es_dirigido() else 1) if v in self.adj else None
 
     #### Algoritmos ####
     def dijkstra(self, origen: object) -> Dict[object, object]:
@@ -198,5 +228,17 @@ class Grafo:
         G = nx.Graph() if not self.es_dirigido() else nx.DiGraph()
         for v in self:
             G.add_node(v)
-        for s, t in self.aristas():
-            G.add_edge(s, t)
+        for s, t in self.aristas:
+            data, weight = self.obtener_arista(s, t)
+            G.add_edge(s, t, data=data, weight=weight)
+        return G
+
+
+grafo = Grafo()
+grafo.agregar_vertice("A")
+grafo.agregar_vertice("B")
+grafo.agregar_vertice("C")
+grafo.agregar_arista("A", "B", data="a-b", weight=1)
+grafo.agregar_arista("B", "C", data="b-c", weight=2)
+grafo.agregar_arista("C", "A", data="c-a", weight=3)
+grafo.draw()
