@@ -1,7 +1,7 @@
 from typing import List, Tuple, Dict
 import networkx as nx
 import sys
-import random
+import matplotlib.pyplot as pltimport random
 
 import heapq
 
@@ -20,8 +20,32 @@ class Grafo:
         inicializado sin vértices ni aristas.
         """
         self._dirigido = dirigido
-        self.aristas: dict[tuple, dict] = {}
         self.adj: dict[object, dict[object, dict]] = {}
+        self.aristas: dict[object, dict[object, dict]] = {}
+
+    def __str__(self):
+        """Representación en string del grafo.
+
+        Args: None
+        Returns: Una representación en string del grafo.
+        """
+        return str(self.adj)
+
+    def __getitem__(self, v: object) -> List[object]:
+        """Devuelve la lista de adyacencia del vértice v.
+
+        Args: v vértice del grafo
+        Returns: La lista de adyacencia del vértice v.
+        """
+        return self.lista_adyacencia(v)
+
+    def __iter__(self):
+        """Iterador del grafo.
+
+        Args: None
+        Returns: Un iterador sobre los vértices del grafo.
+        """
+        return iter(self.adj)
 
     #### Operaciones básicas del TAD ####
     def es_dirigido(self) -> bool:
@@ -229,7 +253,44 @@ class Grafo:
         for v in self:
             G.add_node(v)
         for s, t in self.aristas:
-            G.add_edge(s, t)
+            data, weight = self.obtener_arista(s, t)
+            G.add_edge(s, t, data=data, weight=weight)
+        return G
+
+    def kruskal_to_graph(self, aristas: List[Tuple[object, object]]) -> nx.Graph:
+        """Construye un grafo a partir de una lista de aristas.
+
+        Args: aristas lista de aristas [(s1,t1),(s2,t2),...,(sn,tn)]
+        Returns: Devuelve un objeto Graph con los vértices y aristas
+        de la lista dada.
+        """
+        G = nx.Graph()
+        for s, t in aristas:
+            data, weight = self.obtener_arista(s, t)
+            G.add_vertex(s)
+            G.add_vertex(t)
+            G.add_edge(s, t, data=data, weight=weight)
+        return G
+
+    def draw(self):
+        """Dibuja el grafo usando networkx.
+
+        Args: None
+        Returns: None
+        """
+        G = self.convertir_a_NetworkX()
+        nx.draw(G, with_labels=True)
+        plt.show()
+
+
+grafo = Grafo()
+grafo.agregar_vertice("A")
+grafo.agregar_vertice("B")
+grafo.agregar_vertice("C")
+grafo.agregar_arista("A", "B", data="a-b", weight=1)
+grafo.agregar_arista("B", "C", data="b-c", weight=2)
+grafo.agregar_arista("C", "A", data="c-a", weight=3)
+grafo.draw()
 
 
 if __name__ == "__main__":
