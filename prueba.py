@@ -1,2 +1,1 @@
-a = {1, 2, 3, 4}
-print(list(map(set, a)))
+print((0,)+(1,)*10)
