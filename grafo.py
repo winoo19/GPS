@@ -19,7 +19,6 @@ class Grafo:
         inicializado sin vértices ni aristas.
         """
         self._dirigido = dirigido
-        self.aristas: dict[tuple, dict] = {}
         self.adj: dict[object, dict[object, dict]] = {}
         self.aristas: dict[object, dict[object, dict]] = {}
 
@@ -30,16 +29,6 @@ class Grafo:
         Returns: Una representación en string del grafo.
         """
         return str(self.adj)
-
-    def draw(self):
-        """Dibuja el grafo usando networkx.
-
-        Args: None
-        Returns: None
-        """
-        G = self.convertir_a_NetworkX()
-        nx.draw(G, with_labels=True)
-        plt.show()
 
     def __getitem__(self, v: object) -> List[object]:
         """Devuelve la lista de adyacencia del vértice v.
@@ -244,6 +233,31 @@ class Grafo:
             data, weight = self.obtener_arista(s, t)
             G.add_edge(s, t, data=data, weight=weight)
         return G
+
+    def kruskal_to_graph(self, aristas: List[Tuple[object, object]]) -> nx.Graph:
+        """Construye un grafo a partir de una lista de aristas.
+
+        Args: aristas lista de aristas [(s1,t1),(s2,t2),...,(sn,tn)]
+        Returns: Devuelve un objeto Graph con los vértices y aristas
+        de la lista dada.
+        """
+        G = nx.Graph()
+        for s, t in aristas:
+            data, weight = self.obtener_arista(s, t)
+            G.add_vertex(s)
+            G.add_vertex(t)
+            G.add_edge(s, t, data=data, weight=weight)
+        return G
+
+    def draw(self):
+        """Dibuja el grafo usando networkx.
+
+        Args: None
+        Returns: None
+        """
+        G = self.convertir_a_NetworkX()
+        nx.draw(G, with_labels=True)
+        plt.show()
 
 
 grafo = Grafo()
