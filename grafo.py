@@ -1,6 +1,7 @@
 from typing import List, Tuple, Dict
 import networkx as nx
 import sys
+import random
 
 import heapq
 
@@ -198,10 +199,31 @@ class Grafo:
         que forman las aristas del arbol abarcador mínimo.
         """
         n_vertices = len(self.adj)
-        tree = []
-        aristas = sorted(self.aristas, key=lambda x: self.aristas[x]["weight"])
-        while len(tree) == n_vertices:
-            pass
+        forest = set(map(lambda x: frozenset((x,)), self.adj.keys()))
+        path = []
+        aristas = sorted(self.aristas, key=lambda x: self.aristas[x]["weight"], reverse=True)
+        print(f"Aristas: {aristas}")
+
+        while len(path) < n_vertices - 1:
+            u, v = aristas.pop()
+            set_u = set_v = None
+
+            for tree in forest:
+                if u in tree:
+                    set_u = tree
+                if v in tree:
+                    set_v = tree
+                if set_u and set_v:
+                    break
+
+            if set_u != set_v:
+                path.append((u, v))
+                forest.remove(set_u)
+                forest.remove(set_v)
+                forest.add(set_u|set_v)
+
+        return path
+
 
     #### NetworkX ####
     def convertir_a_NetworkX(self) -> nx.Graph or nx.DiGraph:
@@ -216,5 +238,16 @@ class Grafo:
         G = nx.Graph() if not self.es_dirigido() else nx.DiGraph()
         for v in self:
             G.add_node(v)
-        for s, t in self.aristas():
+        for s, t in self.aristas:
             G.add_edge(s, t)
+
+
+if __name__ == "__main__":
+    graph = Grafo()
+    for i in range(10):
+        graph.agregar_vertice(i)
+
+    for _ in range(20):
+        graph.agregar_arista(random.randint(0, 9), random.randint(0, 9), None, random.random()*10)
+
+    print("Minimum span tree", graph.kruskal())
