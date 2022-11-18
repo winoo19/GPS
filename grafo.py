@@ -40,7 +40,9 @@ class Grafo:
         """
         self.adj[v] = {}
 
-    def agregar_arista(self, s: object, t: object, data: object, weight: float = 1) -> None:
+    def agregar_arista(
+        self, s: object, t: object, data: object, weight: float = 1
+    ) -> None:
         """Si los objetos s y t son vértices del grafo, agrega
         una arista al grafo que va desde el vértice s hasta el vértice t
         y le asocia los datos "data" y el peso weight.
@@ -54,24 +56,11 @@ class Grafo:
         Returns: None
         """
         if s in self.adj and t in self.adj:
-            self.aristas[(s, t)] = {
-                "data": data,
-                "weight": weight
-            }
-            self.adj[s][t] = {
-                "data": data,
-                "weight": weight
-            }
+            self.aristas[(s, t)] = {"data": data, "weight": weight}
+            self.adj[s][t] = {"data": data, "weight": weight}
             if not self.es_dirigido():
-                self.adj[t][s] = {
-                "data": data,
-                "weight": weight
-            }
-                self.aristas[(t, s)] = {
-                "data": data,
-                "weight": weight
-            }
-
+                self.adj[t][s] = {"data": data, "weight": weight}
+                self.aristas[(t, s)] = {"data": data, "weight": weight}
 
     def eliminar_vertice(self, v: object) -> None:
         """Si el objeto v es un vértice del grafo lo elimiina.
@@ -161,8 +150,8 @@ class Grafo:
         Returns: El grado (int) o grado saliente (int) según corresponda
         si el vértice existe y None en caso contrario.
         """
-        grado = self.grado_saliente(v)+self.grado_entrante(v)
-        return grado//(2 if not self.es_dirigido() else 1) if v in self.adj else None
+        grado = self.grado_saliente(v) + self.grado_entrante(v)
+        return grado // (2 if not self.es_dirigido() else 1) if v in self.adj else None
 
     #### Algoritmos ####
     def dijkstra(self, origen: object) -> Dict[object, object]:
@@ -201,7 +190,9 @@ class Grafo:
         n_vertices = len(self.adj)
         forest = set(map(lambda x: frozenset((x,)), self.adj.keys()))
         path = []
-        aristas = sorted(self.aristas, key=lambda x: self.aristas[x]["weight"], reverse=True)
+        aristas = sorted(
+            self.aristas, key=lambda x: self.aristas[x]["weight"], reverse=True
+        )
         print(f"Aristas: {aristas}")
 
         while len(path) < n_vertices - 1:
@@ -220,10 +211,9 @@ class Grafo:
                 path.append((u, v))
                 forest.remove(set_u)
                 forest.remove(set_v)
-                forest.add(set_u|set_v)
+                forest.add(set_u | set_v)
 
         return path
-
 
     #### NetworkX ####
     def convertir_a_NetworkX(self) -> nx.Graph or nx.DiGraph:
@@ -248,6 +238,8 @@ if __name__ == "__main__":
         graph.agregar_vertice(i)
 
     for _ in range(20):
-        graph.agregar_arista(random.randint(0, 9), random.randint(0, 9), None, random.random()*10)
+        graph.agregar_arista(
+            random.randint(0, 9), random.randint(0, 9), None, random.random() * 10
+        )
 
     print("Minimum span tree", graph.kruskal())
