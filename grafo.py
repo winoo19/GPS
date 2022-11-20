@@ -3,7 +3,6 @@ import networkx as nx
 import sys
 import matplotlib.pyplot as plt
 import random
-import matplotlib.pyplot as plt
 
 import heapq
 
@@ -288,6 +287,21 @@ class Grafo:
             G.add_edge(s, t, data=data, weight=weight)
         return G
 
+    def NetworkX_a_grafo(self, G: nx.Graph or nx.DiGraph) -> None:
+        """Construye un grafo o digrafo a partir de un objeto Graph
+        o DiGraph de NetworkX.
+
+        Args: G objeto Graph o DiGraph de NetworkX
+        Returns: None
+        """
+        self.adj = {}
+        self.aristas = {}
+        self.dirigido = isinstance(G, nx.DiGraph)
+        for v in G:
+            self.agregar_vertice(v)
+        for s, t in G.edges:
+            self.agregar_arista(s, t, data=G[s][t])
+
     def kruskal_to_graph(self, aristas: List[Tuple[object, object]]) -> nx.Graph:
         """Construye un grafo a partir de una lista de aristas.
 
@@ -308,6 +322,7 @@ class Grafo:
         Args: None
         Returns: None
         """
+        plt.plot()
         G = self.convertir_a_NetworkX()
         pos = nx.spring_layout(G)
         nx.draw(G, pos=pos, with_labels=True)
@@ -316,15 +331,21 @@ class Grafo:
         nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
         plt.show()
 
-    def draw(self):
-        """Dibuja el grafo usando networkx.
-        Args: None
-        Returns: None
-        """
-        plot = plt.plot()
-        G = self.convertir_a_NetworkX()
-        nx.draw(G, with_labels=True)
-        plt.show()
+    def save_graph(self, path="grafo.txt"):
+        grafo = {
+            "adj": self.adj,
+            "aristas": self.aristas,
+            "dirigido": self.es_dirigido(),
+        }
+        with open(path, "w") as f:
+            f.write(str(grafo))
+
+    def load_graph(self, path="grafo.json"):
+        with open(path, "r") as f:
+            js = eval(f.read())
+        self.adj = js["adj"]
+        self.aristas = js["aristas"]
+        self.dirigido = js["dirigido"]
 
 
 if __name__ == "__main__":
