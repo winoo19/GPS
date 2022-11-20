@@ -3,6 +3,7 @@ import networkx as nx
 import sys
 import random
 import matplotlib.pyplot as plt
+import json
 
 import heapq
 
@@ -266,16 +267,37 @@ class Grafo:
             G.add_node(v)
         for s, t in self.aristas:
             G.add_edge(s, t)
+        return G
 
-    def draw(self):
+    def draw(self,pos=None):
         """Dibuja el grafo usando networkx.
         Args: None
         Returns: None
         """
-        plot = plt.plot()
+        plt.plot()
         G = self.convertir_a_NetworkX()
-        nx.draw(G, with_labels=True)
+        if pos:
+            nx.draw(G, with_labels=True, pos={k: k for k in self.adj.keys()})
+        else:
+            nx.draw(G, with_labels=True)
         plt.show()
+    
+    def save_graph(self, path="grafo.txt"):
+        grafo = {
+            "adj": self.adj,
+            "aristas": self.aristas,
+            "dirigido": self.es_dirigido()
+        }
+        with open(path, "w") as f:
+            f.write(str(grafo))
+    
+    def load_graph(self, path="grafo.json"):
+        with open(path, "r") as f:
+            js = eval(f.read())
+        self.adj=js["adj"]
+        self.aristas=js["aristas"]
+        self.dirigido=js["dirigido"]
+
 
 
 if __name__ == "__main__":
