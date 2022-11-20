@@ -6,6 +6,8 @@ import random
 
 import heapq
 
+from heapdict import heapdict
+
 INFTY = sys.float_info.max
 
 
@@ -189,7 +191,7 @@ class Grafo:
         return self.convertir_a_NetworkX().is_connected()
 
     #### Algoritmos ####
-    def dijkstra(self, origen: object) -> Dict[object, object]:
+    def dijkstra(self, origen: object, destino: object) -> Dict[object, object]:
         """Calcula un Árbol Abarcador Mínimo para el grafo partiendo
         del vértice "origen" usando el algoritmo de Dijkstra. Calcula únicamente
         el árbol de la componente conexa que contiene a "origen".
@@ -198,7 +200,24 @@ class Grafo:
         Returns: Devuelve un diccionario que indica, para cada vértice alcanzable
         desde "origen", qué vértice es su padre en el árbol abarcador mínimo.
         """
-        pass
+        if origen not in self.adj or destino not in self.adj:
+            return None
+        min_distances = {v: float("inf") for v in self.adj}
+        min_distances[origen] = 0
+        pq = heapdict()
+        pq[origen] = 0
+        parents = {origen: None}
+        while pq:
+            v, _ = pq.popitem()
+            if v == destino:
+                return parents
+            for w in self.adj[v]:
+                new_distance = min_distances[v] + self.adj[v][w]["weight"]
+                if new_distance < min_distances[w]:
+                    min_distances[w] = new_distance
+                    parents[w] = v
+                    pq[w] = new_distance
+        return parents
 
     def camino_minimo(self, origen: object, destino: object) -> List[object]:
         pass
@@ -228,7 +247,6 @@ class Grafo:
         aristas = sorted(
             self.aristas, key=lambda x: self.aristas[x]["weight"], reverse=True
         )
-        print(f"Aristas: {aristas}")
 
         while len(path) < n_vertices - 1:
             u, v = aristas.pop()
@@ -283,14 +301,17 @@ class Grafo:
             G.add_edge(s, t, data=data, weight=weight)
         return G
 
-    def draw(self):
+    def draw(self, draw_weights=False):
         """Dibuja el grafo usando networkx.
-
         Args: None
         Returns: None
         """
         G = self.convertir_a_NetworkX()
-        nx.draw(G, with_labels=True)
+        pos = nx.spring_layout(G)
+        nx.draw(G, pos=pos, with_labels=True)
+        if draw_weights:
+            labels = nx.get_edge_attributes(G, "weight")
+        nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
         plt.show()
 
 
@@ -299,7 +320,7 @@ if __name__ == "__main__":
     for i in range(10):
         graph.agregar_vertice(i)
 
-    for _ in range(20):
+    for _ in range(15):
         graph.agregar_arista(
             random.randint(0, 9),
             random.randint(0, 9),
@@ -307,13 +328,22 @@ if __name__ == "__main__":
             round(random.random() * 10) + 1,
         )
 
-    print("Minimum span tree", graph.kruskal())
-    G = graph.convertir_a_NetworkX()
-    pos = nx.spring_layout(G)
-    K = graph.kruskal_to_graph(graph.kruskal())
-    plot = plt.plot()
-    nx.draw(G, pos)
-    nx.draw(K, pos, edge_color="r")
-    labels = nx.get_edge_attributes(G, "weight")
-    nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
-    plt.show()
+    parents = graph.dijkstra(1, 5)
+    path = []
+    v = 5
+    while v is not None:
+        path.append(v)
+        v = parents[v]
+    print(path[::-1])
+    graph.draw(True)
+
+    # print("Minimum span tree", graph.kruskal())
+    # G = graph.convertir_a_NetworkX()
+    # pos = nx.spring_layout(G)
+    # K = graph.kruskal_to_graph(graph.kruskal())
+    # plot = plt.plot()
+    # nx.draw(G, pos)
+    # nx.draw(K, pos, edge_color="r")
+    # labels = nx.get_edge_attributes(G, "weight")
+    # nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
+    # plt.show()
