@@ -3,6 +3,7 @@ import networkx as nx
 import sys
 import matplotlib.pyplot as plt
 import random
+import matplotlib.pyplot as plt
 
 import heapq
 
@@ -63,7 +64,8 @@ class Grafo:
         Args: v vértice que se quiere agregar
         Returns: None
         """
-        self.adj[v] = {}
+        if v not in self.adj:
+            self.adj[v] = {}
 
     def agregar_arista(
         self, s: object, t: object, data: object, weight: float = 1
@@ -289,6 +291,16 @@ class Grafo:
         Args: None
         Returns: None
         """
+        G = self.convertir_a_NetworkX()
+        nx.draw(G, with_labels=True)
+        plt.show()
+
+    def draw(self):
+        """Dibuja el grafo usando networkx.
+        Args: None
+        Returns: None
+        """
+        plot = plt.plot()
         G = self.convertir_a_NetworkX()
         nx.draw(G, with_labels=True)
         plt.show()
