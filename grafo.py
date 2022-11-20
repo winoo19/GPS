@@ -2,6 +2,7 @@ from typing import List, Tuple, Dict
 import networkx as nx
 import sys
 import random
+import matplotlib.pyplot as plt
 
 import heapq
 
@@ -20,8 +21,32 @@ class Grafo:
         inicializado sin vértices ni aristas.
         """
         self._dirigido = dirigido
-        self.aristas: dict[tuple, dict] = {}
         self.adj: dict[object, dict[object, dict]] = {}
+        self.aristas: dict[object, dict[object, dict]] = {}
+
+    def __str__(self):
+        """Representación en string del grafo.
+
+        Args: None
+        Returns: Una representación en string del grafo.
+        """
+        return str(self.adj)
+
+    def __getitem__(self, v: object) -> List[object]:
+        """Devuelve la lista de adyacencia del vértice v.
+
+        Args: v vértice del grafo
+        Returns: La lista de adyacencia del vértice v.
+        """
+        return self.lista_adyacencia(v)
+
+    def __iter__(self):
+        """Iterador del grafo.
+
+        Args: None
+        Returns: Un iterador sobre los vértices del grafo.
+        """
+        return iter(self.adj)
 
     #### Operaciones básicas del TAD ####
     def es_dirigido(self) -> bool:
@@ -38,7 +63,8 @@ class Grafo:
         Args: v vértice que se quiere agregar
         Returns: None
         """
-        self.adj[v] = {}
+        if v not in self.adj:
+            self.adj[v] = {}
 
     def agregar_arista(self, s: object, t: object, data: object, weight: float = 1) -> None:
         """Si los objetos s y t son vértices del grafo, agrega
@@ -240,6 +266,16 @@ class Grafo:
             G.add_node(v)
         for s, t in self.aristas:
             G.add_edge(s, t)
+
+    def draw(self):
+        """Dibuja el grafo usando networkx.
+        Args: None
+        Returns: None
+        """
+        plot = plt.plot()
+        G = self.convertir_a_NetworkX()
+        nx.draw(G, with_labels=True)
+        plt.show()
 
 
 if __name__ == "__main__":
