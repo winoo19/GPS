@@ -1,7 +1,8 @@
 from typing import List, Tuple, Dict
 import networkx as nx
 import sys
-import matplotlib.pyplot as pltimport random
+import matplotlib.pyplot as plt
+import random
 
 import heapq
 
@@ -218,7 +219,6 @@ class Grafo:
         aristas = sorted(
             self.aristas, key=lambda x: self.aristas[x]["weight"], reverse=True
         )
-        print(f"Aristas: {aristas}")
 
         while len(path) < n_vertices - 1:
             u, v = aristas.pop()
@@ -258,6 +258,21 @@ class Grafo:
             G.add_edge(s, t, data=data, weight=weight)
         return G
 
+    def NetworkX_a_grafo(self, G: nx.Graph or nx.DiGraph) -> None:
+        """Construye un grafo o digrafo a partir de un objeto Graph
+        o DiGraph de NetworkX.
+
+        Args: G objeto Graph o DiGraph de NetworkX
+        Returns: None
+        """
+        self.adj = {}
+        self.aristas = {}
+        self.dirigido = isinstance(G, nx.DiGraph)
+        for v in G:
+            self.agregar_vertice(v)
+        for s, t in G.edges:
+            self.agregar_arista(s, t, data=G[s][t])
+
     def kruskal_to_graph(self, aristas: List[Tuple[object, object]]) -> nx.Graph:
         """Construye un grafo a partir de una lista de aristas.
 
@@ -268,30 +283,9 @@ class Grafo:
         G = nx.Graph()
         for s, t in aristas:
             data, weight = self.obtener_arista(s, t)
-            G.add_vertex(s)
-            G.add_vertex(t)
+            G.add_node(s)
+            G.add_node(t)
             G.add_edge(s, t, data=data, weight=weight)
-        return G
-
-    def draw(self):
-        """Dibuja el grafo usando networkx.
-
-        Args: None
-        Returns: None
-        """
-        G = self.convertir_a_NetworkX()
-        nx.draw(G, with_labels=True)
-        plt.show()
-
-
-grafo = Grafo()
-grafo.agregar_vertice("A")
-grafo.agregar_vertice("B")
-grafo.agregar_vertice("C")
-grafo.agregar_arista("A", "B", data="a-b", weight=1)
-grafo.agregar_arista("B", "C", data="b-c", weight=2)
-grafo.agregar_arista("C", "A", data="c-a", weight=3)
-grafo.draw()
         return G
 
     def draw(self,pos=None):
