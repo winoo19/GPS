@@ -1,9 +1,7 @@
 from typing import List, Tuple, Dict
 import networkx as nx
 import sys
-import random
-import matplotlib.pyplot as plt
-import json
+import matplotlib.pyplot as pltimport random
 
 import heapq
 
@@ -67,7 +65,9 @@ class Grafo:
         if v not in self.adj:
             self.adj[v] = {}
 
-    def agregar_arista(self, s: object, t: object, data: object, weight: float = 1) -> None:
+    def agregar_arista(
+        self, s: object, t: object, data: object, weight: float = 1
+    ) -> None:
         """Si los objetos s y t son vértices del grafo, agrega
         una arista al grafo que va desde el vértice s hasta el vértice t
         y le asocia los datos "data" y el peso weight.
@@ -81,24 +81,11 @@ class Grafo:
         Returns: None
         """
         if s in self.adj and t in self.adj:
-            self.aristas[(s, t)] = {
-                "data": data,
-                "weight": weight
-            }
-            self.adj[s][t] = {
-                "data": data,
-                "weight": weight
-            }
+            self.aristas[(s, t)] = {"data": data, "weight": weight}
+            self.adj[s][t] = {"data": data, "weight": weight}
             if not self.es_dirigido():
-                self.adj[t][s] = {
-                "data": data,
-                "weight": weight
-            }
-                self.aristas[(t, s)] = {
-                "data": data,
-                "weight": weight
-            }
-
+                self.adj[t][s] = {"data": data, "weight": weight}
+                self.aristas[(t, s)] = {"data": data, "weight": weight}
 
     def eliminar_vertice(self, v: object) -> None:
         """Si el objeto v es un vértice del grafo lo elimiina.
@@ -188,8 +175,8 @@ class Grafo:
         Returns: El grado (int) o grado saliente (int) según corresponda
         si el vértice existe y None en caso contrario.
         """
-        grado = self.grado_saliente(v)+self.grado_entrante(v)
-        return grado//(2 if not self.es_dirigido() else 1) if v in self.adj else None
+        grado = self.grado_saliente(v) + self.grado_entrante(v)
+        return grado // (2 if not self.es_dirigido() else 1) if v in self.adj else None
 
     #### Algoritmos ####
     def dijkstra(self, origen: object) -> Dict[object, object]:
@@ -228,7 +215,9 @@ class Grafo:
         n_vertices = len(self.adj)
         forest = set(map(lambda x: frozenset((x,)), self.adj.keys()))
         path = []
-        aristas = sorted(self.aristas, key=lambda x: self.aristas[x]["weight"], reverse=True)
+        aristas = sorted(
+            self.aristas, key=lambda x: self.aristas[x]["weight"], reverse=True
+        )
         print(f"Aristas: {aristas}")
 
         while len(path) < n_vertices - 1:
@@ -247,10 +236,9 @@ class Grafo:
                 path.append((u, v))
                 forest.remove(set_u)
                 forest.remove(set_v)
-                forest.add(set_u|set_v)
+                forest.add(set_u | set_v)
 
         return path
-
 
     #### NetworkX ####
     def convertir_a_NetworkX(self) -> nx.Graph or nx.DiGraph:
@@ -266,7 +254,44 @@ class Grafo:
         for v in self:
             G.add_node(v)
         for s, t in self.aristas:
-            G.add_edge(s, t)
+            data, weight = self.obtener_arista(s, t)
+            G.add_edge(s, t, data=data, weight=weight)
+        return G
+
+    def kruskal_to_graph(self, aristas: List[Tuple[object, object]]) -> nx.Graph:
+        """Construye un grafo a partir de una lista de aristas.
+
+        Args: aristas lista de aristas [(s1,t1),(s2,t2),...,(sn,tn)]
+        Returns: Devuelve un objeto Graph con los vértices y aristas
+        de la lista dada.
+        """
+        G = nx.Graph()
+        for s, t in aristas:
+            data, weight = self.obtener_arista(s, t)
+            G.add_vertex(s)
+            G.add_vertex(t)
+            G.add_edge(s, t, data=data, weight=weight)
+        return G
+
+    def draw(self):
+        """Dibuja el grafo usando networkx.
+
+        Args: None
+        Returns: None
+        """
+        G = self.convertir_a_NetworkX()
+        nx.draw(G, with_labels=True)
+        plt.show()
+
+
+grafo = Grafo()
+grafo.agregar_vertice("A")
+grafo.agregar_vertice("B")
+grafo.agregar_vertice("C")
+grafo.agregar_arista("A", "B", data="a-b", weight=1)
+grafo.agregar_arista("B", "C", data="b-c", weight=2)
+grafo.agregar_arista("C", "A", data="c-a", weight=3)
+grafo.draw()
         return G
 
     def draw(self,pos=None):
@@ -306,6 +331,8 @@ if __name__ == "__main__":
         graph.agregar_vertice(i)
 
     for _ in range(20):
-        graph.agregar_arista(random.randint(0, 9), random.randint(0, 9), None, random.random()*10)
+        graph.agregar_arista(
+            random.randint(0, 9), random.randint(0, 9), None, random.random() * 10
+        )
 
     print("Minimum span tree", graph.kruskal())
