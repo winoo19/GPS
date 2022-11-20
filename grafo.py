@@ -1,7 +1,8 @@
 from typing import List, Tuple, Dict
 import networkx as nx
 import sys
-import matplotlib.pyplot as pltimport random
+import matplotlib.pyplot as plt
+import random
 
 import heapq
 
@@ -79,6 +80,8 @@ class Grafo:
             weight: peso de la arista
         Returns: None
         """
+        if s == t and not self.es_dirigido():
+            return None
         if s in self.adj and t in self.adj:
             self.aristas[(s, t)] = {"data": data, "weight": weight}
             self.adj[s][t] = {"data": data, "weight": weight}
@@ -177,6 +180,14 @@ class Grafo:
         grado = self.grado_saliente(v) + self.grado_entrante(v)
         return grado // (2 if not self.es_dirigido() else 1) if v in self.adj else None
 
+    def es_connexo(self) -> bool:
+        """Devuelve True si el grafo es conexo y False en caso contrario.
+
+        Args: None
+        Returns: True si el grafo es conexo y False en caso contrario.
+        """
+        return self.convertir_a_NetworkX().is_connected()
+
     #### Algoritmos ####
     def dijkstra(self, origen: object) -> Dict[object, object]:
         """Calcula un Árbol Abarcador Mínimo para el grafo partiendo
@@ -267,8 +278,8 @@ class Grafo:
         G = nx.Graph()
         for s, t in aristas:
             data, weight = self.obtener_arista(s, t)
-            G.add_vertex(s)
-            G.add_vertex(t)
+            G.add_node(s)
+            G.add_node(t)
             G.add_edge(s, t, data=data, weight=weight)
         return G
 
@@ -283,16 +294,6 @@ class Grafo:
         plt.show()
 
 
-grafo = Grafo()
-grafo.agregar_vertice("A")
-grafo.agregar_vertice("B")
-grafo.agregar_vertice("C")
-grafo.agregar_arista("A", "B", data="a-b", weight=1)
-grafo.agregar_arista("B", "C", data="b-c", weight=2)
-grafo.agregar_arista("C", "A", data="c-a", weight=3)
-grafo.draw()
-
-
 if __name__ == "__main__":
     graph = Grafo()
     for i in range(10):
@@ -300,7 +301,19 @@ if __name__ == "__main__":
 
     for _ in range(20):
         graph.agregar_arista(
-            random.randint(0, 9), random.randint(0, 9), None, random.random() * 10
+            random.randint(0, 9),
+            random.randint(0, 9),
+            None,
+            round(random.random() * 10) + 1,
         )
 
     print("Minimum span tree", graph.kruskal())
+    G = graph.convertir_a_NetworkX()
+    pos = nx.spring_layout(G)
+    K = graph.kruskal_to_graph(graph.kruskal())
+    plot = plt.plot()
+    nx.draw(G, pos)
+    nx.draw(K, pos, edge_color="r")
+    labels = nx.get_edge_attributes(G, "weight")
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
+    plt.show()
