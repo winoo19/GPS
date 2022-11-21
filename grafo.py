@@ -4,8 +4,6 @@ import sys
 import matplotlib.pyplot as plt
 import random
 
-import heapq
-
 from heapdict import heapdict
 
 INFTY = sys.float_info.max
@@ -210,18 +208,29 @@ class Grafo:
         parents = {origen: None}
         while pq:
             v, _ = pq.popitem()
-            if v == destino:
-                return parents
             for w in self.adj[v]:
                 new_distance = min_distances[v] + self.adj[v][w]["weight"]
                 if new_distance < min_distances[w]:
                     min_distances[w] = new_distance
                     parents[w] = v
                     pq[w] = new_distance
+            if v == destino:
+                return parents
         return parents
 
     def camino_minimo(self, origen: object, destino: object) -> List[object]:
-        pass
+        parents = self.dijkstra(origen, destino)
+        if parents is None:
+            return None
+        path = []
+        print(parents)
+        print("origen: ", origen)
+        print("destino: ", destino)
+        v = destino
+        while v is not None:
+            path.append(v)
+            v = parents[v]
+        return path[::-1]
 
     def prim(self) -> Dict[object, object]:
         """Calcula un Árbol Abarcador Mínimo para el grafo
@@ -317,19 +326,37 @@ class Grafo:
             G.add_edge(s, t, data=data, weight=weight)
         return G
 
-    def draw(self, draw_weights=False):
+    def draw(
+        self,
+        draw_weights=False,
+        node_size=5,
+        width=0.5,
+        arrows=False,
+        pos=None,
+        nb=False,
+    ):
         """Dibuja el grafo usando networkx.
         Args: None
         Returns: None
         """
-        plt.plot()
+        if not nb:
+            plt.plot()
         G = self.convertir_a_NetworkX()
-        pos = nx.spring_layout(G)
-        nx.draw(G, pos=pos, with_labels=True)
+        if not pos:
+            pos = nx.spring_layout(G)
+        nx.draw(
+            G,
+            pos=pos,
+            with_labels=True,
+            node_size=node_size,
+            width=width,
+            arrows=arrows,
+        )
         if draw_weights:
             labels = nx.get_edge_attributes(G, "weight")
-        nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
-        plt.show()
+            nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
+        if not nb:
+            plt.show()
 
     def save_graph(self, path="grafo.txt"):
         grafo = {
@@ -337,11 +364,11 @@ class Grafo:
             "aristas": self.aristas,
             "dirigido": self.es_dirigido(),
         }
-        with open(path, "w") as f:
+        with open(path, "w", encoding="latin-1") as f:
             f.write(str(grafo))
 
     def load_graph(self, path="grafo.json"):
-        with open(path, "r") as f:
+        with open(path, "r", encoding="latin-1") as f:
             js = eval(f.read())
         self.adj = js["adj"]
         self.aristas = js["aristas"]
