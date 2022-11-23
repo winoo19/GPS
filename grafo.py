@@ -208,14 +208,14 @@ class Grafo:
         parents = {origen: None}
         while pq:
             v, _ = pq.popitem()
+            if v == destino:
+                return parents
             for w in self.adj[v]:
                 new_distance = min_distances[v] + self.adj[v][w]["weight"]
                 if new_distance < min_distances[w]:
                     min_distances[w] = new_distance
                     parents[w] = v
                     pq[w] = new_distance
-            if v == destino:
-                return parents
         return parents
 
     def camino_minimo(self, origen: object, destino: object) -> List[object]:
@@ -223,9 +223,6 @@ class Grafo:
         if parents is None:
             return None
         path = []
-        print(parents)
-        print("origen: ", origen)
-        print("destino: ", destino)
         v = destino
         while v is not None:
             path.append(v)
@@ -326,15 +323,7 @@ class Grafo:
             G.add_edge(s, t, data=data, weight=weight)
         return G
 
-    def draw(
-        self,
-        draw_weights=False,
-        node_size=5,
-        width=0.5,
-        arrows=False,
-        pos=None,
-        nb=False,
-    ):
+    def draw(self, draw_weights=False, node_size=5, width=0.5, arrows=False, pos=None, nb=False):
         """Dibuja el grafo usando networkx.
         Args: None
         Returns: None
@@ -344,14 +333,7 @@ class Grafo:
         G = self.convertir_a_NetworkX()
         if not pos:
             pos = nx.spring_layout(G)
-        nx.draw(
-            G,
-            pos=pos,
-            with_labels=True,
-            node_size=node_size,
-            width=width,
-            arrows=arrows,
-        )
+        nx.draw(G, pos=pos, with_labels=True, node_size=node_size, width=width, arrows=arrows)
         if draw_weights:
             labels = nx.get_edge_attributes(G, "weight")
             nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
