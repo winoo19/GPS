@@ -276,7 +276,6 @@ class Grafo:
 
         return path
 
-    #### NetworkX ####
     def convertir_a_NetworkX(self) -> nx.Graph or nx.DiGraph:
         """Construye un grafo o digrafo de Networkx según corresponda
         a partir de los datos del grafo actual.
@@ -338,6 +337,40 @@ class Grafo:
             nx.draw_networkx_edge_labels(G, pos=pos, edge_labels=weights)
         plt.show()
 
+    def draw_shortest_path(
+        self,
+        origen,
+        destino,
+        pos=None,
+        with_labels=False,
+        with_weights=False,
+        node_size=100,
+        edge_width=1,
+        arrows=False,
+    ):
+        path = self.camino_minimo(origen, destino)
+        G = self.convertir_a_NetworkX()
+        pos = nx.spring_layout(G) if pos is None else pos
+        edges = [(path[i], path[i + 1]) for i in range(len(path) - 1)]
+        weights = nx.get_edge_attributes(G, "weight") if with_weights else None
+        nx.draw(
+            G,
+            pos=pos,
+            with_labels=with_labels,
+            node_size=node_size,
+            width=edge_width,
+            arrows=arrows,
+        )
+        nx.draw_networkx_edges(
+            G, pos=pos, edgelist=edges, edge_color="r", width=edge_width * 10
+        )
+        if with_weights:
+            nx.draw_networkx_edge_labels(G, pos=pos, edge_labels=weights)
+        nx.draw_networkx_nodes(
+            G, pos=pos, nodelist=[origen, destino], node_color="purple", node_size=10
+        )
+        plt.show()
+
     def save_graph(self, path="grafo.txt"):
         grafo = {
             "adj": self.adj,
@@ -363,8 +396,8 @@ if __name__ == "__main__":
     graph.agregar_vertice("D")
     graph.agregar_vertice("E")
     graph.agregar_vertice("V")
-    graph.agregar_vertice("W")
-    graph.agregar_vertice("X")
+    # graph.agregar_vertice("W")
+    # graph.agregar_vertice("X")
 
     graph.agregar_arista("A", "B", weight=5, data="A-B")
     graph.agregar_arista("A", "V", weight=3, data="A-V")
@@ -376,13 +409,17 @@ if __name__ == "__main__":
     graph.agregar_arista("B", "C", weight=2, data="B-D")
     graph.agregar_arista("C", "E", weight=5, data="C-E")
     graph.agregar_arista("D", "E", weight=1, data="D-E")
-    graph.agregar_arista("X", "W", weight=4, data="D-W")
+    # graph.agregar_arista("X", "W", weight=4, data="D-W")
 
     # graph.draw_kruskal(
     #     with_labels=True, node_size=500, edge_width=2, arrows=True, with_weights=True
     # )
-    print(graph.dijkstra("A"))
-    print(graph.camino_minimo("A", "E"))
-    path = graph.camino_minimo("A", "E")
-    G = graph.convertir_a_NetworkX()
-    pos = nx.spring_layout(G)
+
+    graph.draw_shortest_path(
+        "A",
+        "E",
+        with_labels=True,
+        node_size=500,
+        edge_width=2,
+        with_weights=True,
+    )
