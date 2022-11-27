@@ -2,7 +2,6 @@ from typing import List, Tuple, Dict
 import networkx as nx
 import sys
 import matplotlib.pyplot as plt
-import random
 
 from heapdict import heapdict
 
@@ -238,7 +237,18 @@ class Grafo:
         Returns: Devuelve un diccionario que indica, para cada vértice del
         grafo, qué vértice es su padre en el árbol abarcador mínimo.
         """
-        pass
+        coste_min = dict.fromkeys(self.adj.keys(), float("inf"))
+        coste_min = heapdict(coste_min)
+        padres = dict.fromkeys(self.adj.keys(), None)
+
+        while coste_min:
+            v, _ = coste_min.popitem()
+            for adj, value in self.adj[v].items():
+                if adj in coste_min and value["weight"] < coste_min[adj]:
+                    coste_min[adj] = value["weight"]
+                    padres[adj] = v
+
+        return padres
 
     def kruskal(self) -> List[Tuple[object, object]]:
         """Calcula un Árbol Abarcador Mínimo para el grafo
@@ -250,29 +260,19 @@ class Grafo:
         que forman las aristas del arbol abarcador mínimo.
         """
         n_vertices = len(self.adj)
-        forest = set(map(lambda x: frozenset((x,)), self.adj.keys()))
+        forest = {v: frozenset((v,)) for v in self.adj.keys()}
         path = []
-        aristas = sorted(
-            self.aristas, key=lambda x: self.aristas[x]["weight"], reverse=True
-        )
+        aristas = sorted(self.aristas, key=lambda x: self.aristas[x]["weight"], reverse=True)
 
-        while len(path) < n_vertices - 1:
+        while aristas and len(path) < n_vertices - 1:
             u, v = aristas.pop()
-            set_u = set_v = None
-
-            for tree in forest:
-                if u in tree:
-                    set_u = tree
-                if v in tree:
-                    set_v = tree
-                if set_u and set_v:
-                    break
-
+            set_u = forest[u]
+            set_v = forest[v]
             if set_u != set_v:
                 path.append((u, v))
-                forest.remove(set_u)
-                forest.remove(set_v)
-                forest.add(set_u | set_v)
+                union = set_u | set_v
+                for vertice in union:
+                    forest[vertice] = union
 
         return path
 
@@ -381,8 +381,10 @@ if __name__ == "__main__":
     # graph.draw_kruskal(
     #     with_labels=True, node_size=500, edge_width=2, arrows=True, with_weights=True
     # )
-    print(graph.dijkstra("A"))
-    print(graph.camino_minimo("A", "E"))
-    path = graph.camino_minimo("A", "E")
-    G = graph.convertir_a_NetworkX()
-    pos = nx.spring_layout(G)
+    from time import perf_counter
+
+    s = perf_counter()
+    result = graph.prim()
+    e = perf_counter()
+    print(f"result: {result}")
+    print(f"-----time----- {e-s}")
