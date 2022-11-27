@@ -276,7 +276,6 @@ class Grafo:
 
         return path
 
-    #### NetworkX ####
     def convertir_a_NetworkX(self) -> nx.Graph or nx.DiGraph:
         """Construye un grafo o digrafo de Networkx según corresponda
         a partir de los datos del grafo actual.
@@ -336,6 +335,75 @@ class Grafo:
         )
         if with_weights:
             nx.draw_networkx_edge_labels(G, pos=pos, edge_labels=weights)
+        plt.show()
+
+    def draw_shortest_path(
+        self,
+        origen,
+        destino,
+        pos=None,
+        with_labels=False,
+        with_weights=False,
+        node_size=100,
+        edge_width=1,
+        arrows=False,
+    ):
+        path = self.camino_minimo(origen, destino)
+        G = self.convertir_a_NetworkX()
+        pos = nx.spring_layout(G) if pos is None else pos
+        kruskal = self.kruskal()
+        edge_colors = [
+            "g" if e in kruskal or (e[1], e[0]) in kruskal else "b" for e in G.edges
+        ]
+        weights = nx.get_edge_attributes(G, "weight") if with_weights else None
+        pos = nx.spring_layout(G) if pos is None else pos
+        edges = [(path[i], path[i + 1]) for i in range(len(path) - 1)]
+        weights = nx.get_edge_attributes(G, "weight") if with_weights else None
+        nx.draw(
+            G,
+            pos=pos,
+            with_labels=with_labels,
+            node_size=node_size,
+            width=edge_width,
+            arrows=arrows,
+            edge_color=edge_colors,
+        )
+        if with_weights:
+            nx.draw_networkx_edge_labels(G, pos=pos, edge_labels=weights)
+        plt.show()
+
+    def draw_shortest_path(
+        self,
+        origen,
+        destino,
+        pos=None,
+        with_labels=False,
+        with_weights=False,
+        node_size=100,
+        edge_width=1,
+        arrows=False,
+    ):
+        path = self.camino_minimo(origen, destino)
+        G = self.convertir_a_NetworkX()
+        pos = nx.spring_layout(G) if pos is None else pos
+        edges = [(path[i], path[i + 1]) for i in range(len(path) - 1)]
+        weights = nx.get_edge_attributes(G, "weight") if with_weights else None
+        nx.draw(
+            G,
+            pos=pos,
+            with_labels=with_labels,
+            node_size=node_size,
+            width=edge_width,
+            arrows=arrows
+        )
+        nx.draw_networkx_edges(
+            G, pos=pos, edgelist=edges, edge_color="r", width=edge_width * 10
+        )
+        if with_weights:
+            nx.draw_networkx_edge_labels(G, pos=pos, edge_labels=weights)
+        nx.draw_networkx_nodes(
+            G, pos=pos, nodelist=[origen, destino], node_color="purple", node_size=10
+        )
         plt.show()
 
     def save_graph(self, path="grafo.txt"):
