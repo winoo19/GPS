@@ -22,7 +22,7 @@ class Grafo:
         """
         self._dirigido = dirigido
         self.adj: dict[object, dict[object, dict]] = {}
-        self.aristas: dict[object, dict[object, dict]] = {}
+        self.aristas: dict[object, dict] = {}
 
     def __str__(self):
         """Representación en string del grafo.
@@ -87,8 +87,8 @@ class Grafo:
             self.aristas[(s, t)] = {"data": data, "weight": weight}
             self.adj[s][t] = {"data": data, "weight": weight}
             if not self.es_dirigido():
-                self.adj[t][s] = {"data": data, "weight": weight}
                 self.aristas[(t, s)] = {"data": data, "weight": weight}
+                self.adj[t][s] = {"data": data, "weight": weight}
 
     def eliminar_vertice(self, v: object) -> None:
         """Si el objeto v es un vértice del grafo lo elimiina.
@@ -97,16 +97,15 @@ class Grafo:
         Args: v vértice que se quiere eliminar
         Returns: None
         """
-        self.adj.pop(v, -1)
-        for k, _ in self.aristas.items():
-            if v in k:
-                self.aristas.pop(k)
-        for _, value in self.adj.items():
-            value.pop(v, -1)
+        if v in self.adj:
+            self.adj.pop(v, -1)
+            for u, value in self.adj.items():
+                value.pop(v, -1)
+                self.aristas.pop((u, v), -1)
 
     def eliminar_arista(self, s: object, t: object) -> None:
         """Si los objetos s y t son vértices del grafo y existe
-        una arista de u a v la elimina.
+        una arista de s a t la elimina.
         Si no, no hace nada.
 
         Args:
@@ -114,11 +113,12 @@ class Grafo:
             t: vértice de destino de la arista
         Returns: None
         """
-        self.adj[s].pop(t, -1)
-        self.aristas.pop((s, t), -1)
-        if self.es_dirigido():
-            self.adj[t].pop(s, -1)
-            self.aristas.pop((t, s), -1)
+        if s in self.adj and t in self.adj:
+            self.adj[s].pop(t, -1)
+            self.aristas.pop((s, t), -1)
+            if self.es_dirigido():
+                self.adj[t].pop(s, -1)
+                self.aristas.pop((t, s), -1)
 
     def obtener_arista(self, s: object, t: object) -> Tuple[object, float] or None:
         """Si los objetos s y t son vértices del grafo y existe
@@ -147,15 +147,15 @@ class Grafo:
 
     #### Grados de vértices ####
     def grado_saliente(self, v: object) -> int or None:
-        """Si el objeto u es un vértice del grafo, devuelve
+        """Si el objeto v es un vértice del grafo, devuelve
         su grado saliente.
         Si no, devuelve None.
 
-        Args: u vértice del grafo
+        Args: v vértice del grafo
         Returns: El grado saliente (int) si el vértice existe y
         None en caso contrario.
         """
-        return len(self.adj[v].keys()) if v in self.adj else None
+        return len(self.adj[v]) if v in self.adj else None
 
     def grado_entrante(self, v: object) -> int or None:
         """Si el objeto u es un vértice del grafo, devuelve
@@ -181,7 +181,7 @@ class Grafo:
         grado = self.grado_saliente(v) + self.grado_entrante(v)
         return grado // (2 if not self.es_dirigido() else 1) if v in self.adj else None
 
-    def es_connexo(self) -> bool:
+    def es_conexo(self) -> bool:
         """Devuelve True si el grafo es conexo y False en caso contrario.
 
         Args: None
@@ -190,7 +190,7 @@ class Grafo:
         return self.convertir_a_NetworkX().is_connected()
 
     #### Algoritmos ####
-    def dijkstra(self, origen: object, destino: object) -> Dict[object, object]:
+    def dijkstra(self, origen: object) -> Dict[object, object]:
         """Calcula un Árbol Abarcador Mínimo para el grafo partiendo
         del vértice "origen" usando el algoritmo de Dijkstra. Calcula únicamente
         el árbol de la componente conexa que contiene a "origen".
@@ -199,28 +199,29 @@ class Grafo:
         Returns: Devuelve un diccionario que indica, para cada vértice alcanzable
         desde "origen", qué vértice es su padre en el árbol abarcador mínimo.
         """
-        if origen not in self.adj or destino not in self.adj:
+        if origen not in self.adj:
             return None
         min_distances = {v: float("inf") for v in self.adj}
         min_distances[origen] = 0
         pq = heapdict()
         pq[origen] = 0
         parents = {origen: None}
+        visited = set()
         while pq:
             v, _ = pq.popitem()
-            if v == destino:
-                return parents
+            visited.add(v)
             for w in self.adj[v]:
-                new_distance = min_distances[v] + self.adj[v][w]["weight"]
-                if new_distance < min_distances[w]:
-                    min_distances[w] = new_distance
-                    parents[w] = v
-                    pq[w] = new_distance
+                if w not in visited:
+                    new_distance = min_distances[v] + self.adj[v][w]["weight"]
+                    if new_distance < min_distances[w]:
+                        min_distances[w] = new_distance
+                        parents[w] = v
+                        pq[w] = new_distance
         return parents
 
     def camino_minimo(self, origen: object, destino: object) -> List[object]:
-        parents = self.dijkstra(origen, destino)
-        if parents is None:
+        parents = self.dijkstra(origen)
+        if parents is None or destino not in parents:
             return None
         path = []
         v = destino
@@ -293,7 +294,7 @@ class Grafo:
             G.add_edge(s, t, data=data, weight=weight)
         return G
 
-    def NetworkX_a_grafo(self, G: nx.Graph or nx.DiGraph) -> None:
+    def from_NetworkX(self, G: nx.Graph or nx.DiGraph) -> None:
         """Construye un grafo o digrafo a partir de un objeto Graph
         o DiGraph de NetworkX.
 
@@ -306,39 +307,36 @@ class Grafo:
         for v in G:
             self.agregar_vertice(v)
         for s, t in G.edges:
-            self.agregar_arista(s, t, data=G[s][t])
+            self.agregar_arista(s, t, data=G[s][t], weight=G[s][t]["weight"])
 
-    def kruskal_to_graph(self, aristas: List[Tuple[object, object]]) -> nx.Graph:
-        """Construye un grafo a partir de una lista de aristas.
-
-        Args: aristas lista de aristas [(s1,t1),(s2,t2),...,(sn,tn)]
-        Returns: Devuelve un objeto Graph con los vértices y aristas
-        de la lista dada.
-        """
-        G = nx.Graph()
-        for s, t in aristas:
-            data, weight = self.obtener_arista(s, t)
-            G.add_node(s)
-            G.add_node(t)
-            G.add_edge(s, t, data=data, weight=weight)
-        return G
-
-    def draw(self, draw_weights=False, node_size=5, width=0.5, arrows=False, pos=None, nb=False):
-        """Dibuja el grafo usando networkx.
-        Args: None
-        Returns: None
-        """
-        if not nb:
-            plt.plot()
+    def draw_kruskal(
+        self,
+        pos=None,
+        with_labels=False,
+        with_weights=False,
+        node_size=100,
+        edge_width=1,
+        arrows=False,
+    ):
         G = self.convertir_a_NetworkX()
-        if not pos:
-            pos = nx.spring_layout(G)
-        nx.draw(G, pos=pos, with_labels=True, node_size=node_size, width=width, arrows=arrows)
-        if draw_weights:
-            labels = nx.get_edge_attributes(G, "weight")
-            nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
-        if not nb:
-            plt.show()
+        pos = nx.spring_layout(G) if pos is None else pos
+        kruskal = self.kruskal()
+        edge_colors = [
+            "g" if e in kruskal or (e[1], e[0]) in kruskal else "b" for e in G.edges
+        ]
+        weights = nx.get_edge_attributes(G, "weight") if with_weights else None
+        nx.draw(
+            G,
+            pos=pos,
+            with_labels=with_labels,
+            node_size=node_size,
+            width=edge_width,
+            arrows=arrows,
+            edge_color=edge_colors,
+        )
+        if with_weights:
+            nx.draw_networkx_edge_labels(G, pos=pos, edge_labels=weights)
+        plt.show()
 
     def save_graph(self, path="grafo.txt"):
         grafo = {
@@ -359,33 +357,32 @@ class Grafo:
 
 if __name__ == "__main__":
     graph = Grafo()
-    for i in range(10):
-        graph.agregar_vertice(i)
+    graph.agregar_vertice("A")
+    graph.agregar_vertice("B")
+    graph.agregar_vertice("C")
+    graph.agregar_vertice("D")
+    graph.agregar_vertice("E")
+    graph.agregar_vertice("V")
+    graph.agregar_vertice("W")
+    graph.agregar_vertice("X")
 
-    for _ in range(15):
-        graph.agregar_arista(
-            random.randint(0, 9),
-            random.randint(0, 9),
-            None,
-            round(random.random() * 10) + 1,
-        )
+    graph.agregar_arista("A", "B", weight=5, data="A-B")
+    graph.agregar_arista("A", "V", weight=3, data="A-V")
+    graph.agregar_arista("A", "D", weight=6, data="A-D")
+    graph.agregar_arista("A", "E", weight=8, data="A-E")
+    graph.agregar_arista("V", "B", weight=9, data="V-B")
+    graph.agregar_arista("V", "C", weight=7, data="V-B")
+    graph.agregar_arista("B", "D", weight=1, data="B-D")
+    graph.agregar_arista("B", "C", weight=2, data="B-D")
+    graph.agregar_arista("C", "E", weight=5, data="C-E")
+    graph.agregar_arista("D", "E", weight=1, data="D-E")
+    graph.agregar_arista("X", "W", weight=4, data="D-W")
 
-    parents = graph.dijkstra(1, 5)
-    path = []
-    v = 5
-    while v is not None:
-        path.append(v)
-        v = parents[v]
-    print(path[::-1])
-    graph.draw(True)
-
-    # print("Minimum span tree", graph.kruskal())
-    # G = graph.convertir_a_NetworkX()
-    # pos = nx.spring_layout(G)
-    # K = graph.kruskal_to_graph(graph.kruskal())
-    # plot = plt.plot()
-    # nx.draw(G, pos)
-    # nx.draw(K, pos, edge_color="r")
-    # labels = nx.get_edge_attributes(G, "weight")
-    # nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
-    # plt.show()
+    # graph.draw_kruskal(
+    #     with_labels=True, node_size=500, edge_width=2, arrows=True, with_weights=True
+    # )
+    print(graph.dijkstra("A"))
+    print(graph.camino_minimo("A", "E"))
+    path = graph.camino_minimo("A", "E")
+    G = graph.convertir_a_NetworkX()
+    pos = nx.spring_layout(G)
