@@ -228,6 +228,7 @@ class Grafo:
 
     def camino_minimo(self, origen: object, destino: object) -> List[object]:
         if origen not in self.adj and destino not in self.adj:
+            print(self.adj)
             return None
         min_distances = {v: float("inf") for v in self.adj}
         min_distances[origen] = 0
