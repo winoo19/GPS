@@ -1,8 +1,9 @@
-from typing import List, Tuple, Dict
-import networkx as nx
 import sys
+from typing import List, Tuple, Dict
+import random as r
+
+import networkx as nx
 import matplotlib.pyplot as plt
-import random
 
 from heapdict import heapdict
 
@@ -102,6 +103,8 @@ class Grafo:
             for u, value in self.adj.items():
                 value.pop(v, -1)
                 self.aristas.pop((u, v), -1)
+                if not self.es_dirigido():
+                    self.aristas.pop((v, u), -1)
 
     def eliminar_arista(self, s: object, t: object) -> None:
         """Si los objetos s y t son vértices del grafo y existe
@@ -116,7 +119,7 @@ class Grafo:
         if s in self.adj and t in self.adj:
             self.adj[s].pop(t, -1)
             self.aristas.pop((s, t), -1)
-            if self.es_dirigido():
+            if not self.es_dirigido():
                 self.adj[t].pop(s, -1)
                 self.aristas.pop((t, s), -1)
 
@@ -166,7 +169,7 @@ class Grafo:
         Returns: El grado entrante (int) si el vértice existe y
         None en caso contrario.
         """
-        return sum(1 for _, a in self.adj if v in a) if v in self.adj else None
+        return sum(1 for u in self.adj if v in self.adj[u]) if v in self.adj else None
 
     def grado(self, v: object) -> int or None:
         """Si el objeto u es un vértice del grafo, devuelve
@@ -178,8 +181,10 @@ class Grafo:
         Returns: El grado (int) o grado saliente (int) según corresponda
         si el vértice existe y None en caso contrario.
         """
+        if v not in self.adj:
+            return None
         grado = self.grado_saliente(v) + self.grado_entrante(v)
-        return grado // (2 if not self.es_dirigido() else 1) if v in self.adj else None
+        return grado // (2 if not self.es_dirigido() else 1)
 
     def es_conexo(self) -> bool:
         """Devuelve True si el grafo es conexo y False en caso contrario.
@@ -211,6 +216,8 @@ class Grafo:
             v, _ = pq.popitem()
             visited.add(v)
             for w in self.adj[v]:
+                """Visited nodes take less lookups (1) than weights (3)"""
+                """Lookups on visited are"""
                 if w not in visited:
                     new_distance = min_distances[v] + self.adj[v][w]["weight"]
                     if new_distance < min_distances[w]:
@@ -220,7 +227,27 @@ class Grafo:
         return parents
 
     def camino_minimo(self, origen: object, destino: object) -> List[object]:
-        parents = self.dijkstra(origen)
+        if origen not in self.adj and destino not in self.adj:
+            return None
+        min_distances = {v: float("inf") for v in self.adj}
+        min_distances[origen] = 0
+        pq = heapdict()
+        pq[origen] = 0
+        parents = {origen: None}
+        visited = set()
+        v = None
+        while pq and v != destino:
+            v, _ = pq.popitem()
+            visited.add(v)
+            for w in self.adj[v]:
+                """Visited nodes take less lookups (1) than weights (3)"""
+                """Lookups on visited are"""
+                if w not in visited:
+                    new_distance = min_distances[v] + self.adj[v][w]["weight"]
+                    if new_distance < min_distances[w]:
+                        min_distances[w] = new_distance
+                        parents[w] = v
+                        pq[w] = new_distance
         if parents is None or destino not in parents:
             return None
         path = []
@@ -238,7 +265,54 @@ class Grafo:
         Returns: Devuelve un diccionario que indica, para cada vértice del
         grafo, qué vértice es su padre en el árbol abarcador mínimo.
         """
-        pass
+
+        padres = {}
+        visitados = set()
+
+        coste_min = heapdict()
+        coste_min[r.choice(list(self.adj))] = 0
+
+        while coste_min:
+            v, _ = coste_min.popitem()
+            visitados.add(v)
+            for w, value in self.adj[v].items():
+                if w not in visitados:
+                    if w in padres:
+                        if value["weight"] < coste_min[w]:
+                            padres[w] = v
+                            coste_min[w] = value["weight"]
+                    else:
+                        padres[w] = v
+                        coste_min[w] = value["weight"]
+        return padres
+
+    def kruskal_dani(self) -> List[Tuple[object, object]]:
+        """Calcula un Árbol Abarcador Mínimo para el grafo
+        usando el algoritmo de Kruskal.
+
+        Args: None
+        Returns: Devuelve una lista [(s1,t1),(s2,t2),...,(sn,tn)]
+        de los pares de vértices del grafo
+        que forman las aristas del arbol abarcador mínimo.
+        """
+        n_vertices = len(self.adj)
+        forest = {v: frozenset((v,)) for v in self.adj.keys()}
+        path = []
+        aristas = sorted(
+            self.aristas, key=lambda x: self.aristas[x]["weight"], reverse=True
+        )
+
+        while aristas and len(path) < n_vertices - 1:
+            u, v = aristas.pop()
+            set_u = forest[u]
+            set_v = forest[v]
+            if set_u != set_v:
+                path.append((u, v))
+                union = set_u | set_v
+                for vertice in union:
+                    forest[vertice] = union
+
+        return path
 
     def kruskal(self) -> List[Tuple[object, object]]:
         """Calcula un Árbol Abarcador Mínimo para el grafo
@@ -249,32 +323,8 @@ class Grafo:
         de los pares de vértices del grafo
         que forman las aristas del arbol abarcador mínimo.
         """
-        n_vertices = len(self.adj)
-        forest = set(map(lambda x: frozenset((x,)), self.adj.keys()))
-        path = []
-        aristas = sorted(
-            self.aristas, key=lambda x: self.aristas[x]["weight"], reverse=True
-        )
 
-        while len(path) < n_vertices - 1:
-            u, v = aristas.pop()
-            set_u = set_v = None
-
-            for tree in forest:
-                if u in tree:
-                    set_u = tree
-                if v in tree:
-                    set_v = tree
-                if set_u and set_v:
-                    break
-
-            if set_u != set_v:
-                path.append((u, v))
-                forest.remove(set_u)
-                forest.remove(set_v)
-                forest.add(set_u | set_v)
-
-        return path
+        pass
 
     def convertir_a_NetworkX(self) -> nx.Graph or nx.DiGraph:
         """Construye un grafo o digrafo de Networkx según corresponda
@@ -390,36 +440,50 @@ class Grafo:
 
 if __name__ == "__main__":
     graph = Grafo()
-    graph.agregar_vertice("A")
-    graph.agregar_vertice("B")
-    graph.agregar_vertice("C")
-    graph.agregar_vertice("D")
-    graph.agregar_vertice("E")
-    graph.agregar_vertice("V")
+    # graph.agregar_vertice("A")
+    # graph.agregar_vertice("B")
+    # graph.agregar_vertice("C")
+    # graph.agregar_vertice("D")
+    # graph.agregar_vertice("E")
+    # graph.agregar_vertice("V")
     # graph.agregar_vertice("W")
     # graph.agregar_vertice("X")
+    n_vertices = 10
+    for v in range(1, n_vertices):
+        graph.agregar_vertice(v)
 
-    graph.agregar_arista("A", "B", weight=5, data="A-B")
-    graph.agregar_arista("A", "V", weight=3, data="A-V")
-    graph.agregar_arista("A", "D", weight=6, data="A-D")
-    graph.agregar_arista("A", "E", weight=8, data="A-E")
-    graph.agregar_arista("V", "B", weight=9, data="V-B")
-    graph.agregar_arista("V", "C", weight=7, data="V-B")
-    graph.agregar_arista("B", "D", weight=1, data="B-D")
-    graph.agregar_arista("B", "C", weight=2, data="B-D")
-    graph.agregar_arista("C", "E", weight=5, data="C-E")
-    graph.agregar_arista("D", "E", weight=1, data="D-E")
+    for v in range(1, n_vertices):
+        for w in range(1, n_vertices):
+            if v != w and r.random() < 0.5:
+                graph.agregar_arista(v, w, data=None, weight=r.randint(1, 100))
+
+    # inicio = time.time()
+    # graph.prim()
+    # print("time:", time.time() - inicio)
+    # inicio = time.time()
+    # graph.prim_dani()
+    # print("time:", time.time() - inicio)
+    # graph.agregar_arista("A", "B", weight=5, data="A-B")
+    # graph.agregar_arista("A", "V", weight=3, data="A-V")
+    # graph.agregar_arista("A", "D", weight=6, data="A-D")
+    # graph.agregar_arista("A", "E", weight=8, data="A-E")
+    # graph.agregar_arista("V", "B", weight=9, data="V-B")
+    # graph.agregar_arista("V", "C", weight=7, data="V-B")
+    # graph.agregar_arista("B", "D", weight=1, data="B-D")
+    # graph.agregar_arista("B", "C", weight=2, data="B-D")
+    # graph.agregar_arista("C", "E", weight=5, data="C-E")
+    # graph.agregar_arista("D", "E", weight=1, data="D-E")
     # graph.agregar_arista("X", "W", weight=4, data="D-W")
 
     # graph.draw_kruskal(
     #     with_labels=True, node_size=500, edge_width=2, arrows=True, with_weights=True
     # )
 
-    graph.draw_shortest_path(
-        "A",
-        "E",
-        with_labels=True,
-        node_size=500,
-        edge_width=2,
-        with_weights=True,
-    )
+    # graph.draw_shortest_path(
+    #     "A",
+    #     "E",
+    #     with_labels=True,
+    #     node_size=500,
+    #     edge_width=2,
+    #     with_weights=True,
+    # )
